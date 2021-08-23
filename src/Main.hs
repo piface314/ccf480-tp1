@@ -18,5 +18,5 @@ main = do
         , HC.tweakProb = 1.0
         , HC.tweakN = 5
         , HC.select = minimize
-        , HC.stop = NoGoodImprovements 8 1e-2 }
+        , HC.stop = NoImprovements 10 }
   print $ HC.optimize p rg

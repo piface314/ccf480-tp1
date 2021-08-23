@@ -12,14 +12,14 @@ data Params = Params
   , select    :: Selection
   , stop      :: StopCheck }
 
-optimize :: Params -> StdGen -> (Solution, Stats)
-optimize p rg = (s, stats)
+optimize :: Params -> StdGen -> Solution
+optimize p rg = s
   where
     (i, rg') = initialize p rg
-    (s, _, stats) = optimize' p rg' (Stats 0 []) i
+    (s, _) = optimize' p rg' (Stats 0 []) i
 
-optimize' :: Params -> StdGen -> Stats -> Solution -> (Solution, StdGen, Stats)
-optimize' p rg stats@(Stats zn imp) s = if shouldStop (stop p) stats then (s, rg, stats) else optimize' p rg' stats' s'
+optimize' :: Params -> StdGen -> Stats -> Solution -> (Solution, StdGen)
+optimize' p rg stats@(Stats zn imp) s = if shouldStop (stop p) stats then (s, rg) else optimize' p rg' stats' s'
   where
     n = tweakN p
     (candidates, rg') = randMap rg (\rg _ -> tweak p rg s) [1 .. n]
