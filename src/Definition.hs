@@ -6,7 +6,7 @@ type Limit = (Double, Double -> (Double, Double) -> Bool, Double)
 type Prob = Double
 type Solution = [Double]
 type ObjFun = Solution -> Double
-type Selection = ObjFun -> Solution -> Solution -> Solution
+type Selection = Solution -> Solution -> Solution
 data StopCheck = ZChecks Int | Iterations Int | NoImprovements Int | NoGoodImprovements Int Double
 data Stats = Stats { zChecks :: Int, improvements :: [Double] } deriving (Eq, Read, Show)
 
@@ -37,6 +37,9 @@ minimize z s1 s2 = if z s1 < z s2 then s1 else s2
 
 maximize :: ObjFun -> Solution -> Solution -> Solution
 maximize z s1 s2 = if z s1 > z s2 then s1 else s2
+
+inLimits :: [Limit] -> Solution -> Bool
+inLimits lim s = all (\((lo, chk, hi), x) -> chk x (lo, hi)) (zip lim s)
 
 randMap :: StdGen -> (StdGen -> a -> (b, StdGen)) -> [a] -> ([b], StdGen)
 randMap rg f []     = ([], rg)
