@@ -1,7 +1,7 @@
 module HillClimb (Params(..), optimize) where
 
 import           Definition
-import           System.Random
+import           System.Random (Random (random, randomR), StdGen)
 
 data Params = Params
   { z         :: ObjFun
@@ -19,17 +19,15 @@ optimize p rg = s
     (s, _) = optimize' p rg' (Stats 0 []) i
 
 optimize' :: Params -> StdGen -> Stats -> Solution -> (Solution, StdGen)
-optimize' p rg stats@(Stats zn imp) s =
+optimize' p rg stats@(Stats zn zv) s =
   if shouldStop (stop p) stats
     then (s, rg)
     else optimize' p rg' stats' s'
   where
     n = tweakN p
-    (candidates, rg') = randMap rg (\rg _ -> tweak p rg s) [1 .. n]
+    (candidates, rg') = randMap rg (\ rg _ -> tweak p rg s) [1 .. n]
     s' = foldl (select p) s candidates
-    zv = z p s
-    zv' = z p s'
-    stats' = Stats (zn + 2 * n) (abs ((zv' - zv) / zv) : imp)
+    stats' = Stats (zn + 2 * n) (z p s' : zv)
 
 initialize :: Params -> StdGen -> (Solution, StdGen)
 initialize p rg = randMap rg vi (limits p)
@@ -41,9 +39,9 @@ tweak :: Params -> StdGen -> Solution -> (Solution, StdGen)
 tweak p rg s = randMap rg (addNoise p) (zip3 s (noise p) (limits p))
 
 addNoise :: Params -> StdGen -> (Double, Double, Limit) -> (Double, StdGen)
-addNoise prm rg i@(x, _, _) =
-  let (p, rg') = random rg
-    in if p <= tweakProb prm
+addNoise p rg i@(x, _, _) =
+  let (r, rg') = random rg
+    in if r <= tweakProb p
       then addNoise' rg' i
       else (x, rg')
 
