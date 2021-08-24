@@ -19,17 +19,17 @@ main = do
         { PS.z = f1
         , PS.limits = inclusive [(-1.5, 4.0), (-3.0, 4.0)]
         , PS.select = minimize f1
-        , PS.precision = 1e-4 }
-  print $ PS.search p 1.0 [0.0, 0.0]
+        , PS.precision = [1e-4, 1e-4] }
+  print $ PS.search p [1.0, 1.0] [0.0, 0.0]
 
-  rg <- newStdGen
   let p = HC.Params
         { HC.z = f1
         , HC.limits = inclusive [(-1.5, 4.0), (-3.0, 4.0)]
-        , HC.noise = 0.1
+        , HC.noise = [0.1, 0.1]
         , HC.tweakProb = 1.0
         , HC.tweakN = 5
         , HC.select = minimize f1
         , HC.stop = NoImprovements 10 }
+  rg <- newStdGen
   print $ HC.optimize p rg
 

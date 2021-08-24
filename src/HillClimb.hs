@@ -6,7 +6,7 @@ import           System.Random
 data Params = Params
   { z         :: ObjFun
   , limits    :: [Limit]
-  , noise     :: Double
+  , noise     :: [Double]
   , tweakProb :: Prob
   , tweakN    :: Int
   , select    :: Selection
@@ -38,18 +38,18 @@ initialize p rg = randMap rg vi (limits p)
     vi rg (lo, _, hi) = randomR (lo, hi) rg
 
 tweak :: Params -> StdGen -> Solution -> (Solution, StdGen)
-tweak p rg s = randMap rg (addNoise p) (zip s (limits p))
+tweak p rg s = randMap rg (addNoise p) (zip3 s (noise p) (limits p))
 
-addNoise :: Params -> StdGen -> (Double, Limit) -> (Double, StdGen)
-addNoise prm rg i@(x, _) =
+addNoise :: Params -> StdGen -> (Double, Double, Limit) -> (Double, StdGen)
+addNoise prm rg i@(x, _, _) =
   let (p, rg') = random rg
     in if p <= tweakProb prm
-      then addNoise' prm rg' i
+      then addNoise' rg' i
       else (x, rg')
 
-addNoise' :: Params -> StdGen -> (Double, Limit) -> (Double, StdGen)
-addNoise' p rg i@(x, (lo, (<?), hi)) =
-  let (x', rg') = randomR (x - noise p, x + noise p) rg
+addNoise' :: StdGen -> (Double, Double, Limit) -> (Double, StdGen)
+addNoise' rg i@(x, noise, (lo, (<?), hi)) =
+  let (x', rg') = randomR (x - noise, x + noise) rg
     in if x' <? (lo, hi)
       then (x', rg')
-      else addNoise' p rg' i
+      else addNoise' rg' i
