@@ -33,7 +33,7 @@ runCase n rg (pHC, pILS) = ([metrics zsHC, metrics zsILS], rg'')
 metrics :: [Double] -> Metrics
 metrics zs = (xmin, xmax, avg, stddev)
   where
-    (xmin, xmax, s, n') = foldl metrics' (-1/0, 1/0, 0.0, 0) zs
+    (xmin, xmax, s, n') = foldl metrics' (1/0, -1/0, 0.0, 0) zs
     n = fromIntegral n'
     avg = s / n
     stddev = sqrt $ sum (map (\ x -> (x - avg) ** 2) zs) / n
@@ -52,7 +52,7 @@ showLabeledMetrics labelSp sp fp m = unlines $ map labeled m
 showTabularMetrics :: MetricCols -> Int -> [(String, Metrics)] -> String
 showTabularMetrics (alg, mi, ma, avg, std) fp m = sep ++ header ++ sep ++ mLines ++ sep
   where
-    sp = maximum $ map length [alg, mi, ma, avg, std]
+    sp = fp + maximum (map length [alg, mi, ma, avg, std])
     fmt = intercalate "|" (replicate 4 $ printf "%%%ds" sp) ++ "|\n"
     header = "|" ++ alg ++ "|" ++ printf fmt mi ma avg std
     mLines = showLabeledMetrics (length alg) sp fp m
