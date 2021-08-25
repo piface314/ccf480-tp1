@@ -16,12 +16,11 @@ data Params = Params
   , tolerance      :: Prob
   , stop           :: StopCheck }
 
-optimize :: Params -> StdGen -> Solution
-optimize p rg = s
+optimize :: Params -> StdGen -> (Solution, StdGen)
+optimize p rg = optimize' p rg' (Stats 0 []) i' [i']
   where
     (i, rg') = initialize p rg
     i' = search p i
-    (s, _) = optimize' p rg' (Stats 0 []) i' [i']
 
 optimize' :: Params -> StdGen -> Stats -> Solution -> [Solution] -> (Solution, StdGen)
 optimize' p rg stats@(Stats zn zv) s memo =

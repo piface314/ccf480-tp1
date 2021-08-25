@@ -12,11 +12,9 @@ data Params = Params
   , select    :: Selection
   , stop      :: StopCheck }
 
-optimize :: Params -> StdGen -> Solution
-optimize p rg = s
-  where
-    (i, rg') = initialize p rg
-    (s, _) = optimize' p rg' (Stats 0 []) i
+optimize :: Params -> StdGen -> (Solution, StdGen)
+optimize p rg = optimize' p rg' (Stats 0 []) i
+  where (i, rg') = initialize p rg
 
 optimize' :: Params -> StdGen -> Stats -> Solution -> (Solution, StdGen)
 optimize' p rg stats@(Stats zn zv) s =
