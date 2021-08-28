@@ -48,6 +48,9 @@ randMap rg f (x:xs) = (x':xs', rg'')
     (x', rg') = f rg x
     (xs', rg'') = randMap rg' f xs
 
+randFor :: StdGen -> (StdGen -> (a, StdGen)) -> Int -> ([a], StdGen)
+randFor rg f n = randMap rg (\ rg _ -> f rg) [1 .. n] 
+
 shouldStop :: StopCheck -> Stats -> Bool
 shouldStop (ZChecks maxn) Stats{zChecks = n}        = n > maxn
 shouldStop (Iterations maxn) Stats{zBest = v}       = length v > maxn

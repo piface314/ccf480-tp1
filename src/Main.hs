@@ -10,13 +10,18 @@ import qualified Test
 
 main :: IO ()
 main = do
+  putStrLn "Executando algoritmos..."
   rg <- newStdGen
   args <- getArgs
   let (fp, n) = case args of
-                  fp:n:_ -> (read fp, read n)
-                  _      -> (5, 30)
-  let (tables, _) = Test.showCases fp n rg [params1a, params1b, params2c, params2d]
-  putStr tables
+                  []     -> ("out.csv", 30)
+                  [n]    -> ("out.csv", read n)
+                  fp:n:_ -> (fp, read n)
+  let header = ["case", "algorithm", "x", "y", "z"]
+  let tcases = [case1aHC, case1aILS, case1bHC, case1bILS, case2cHC, case2cILS, case2dHC, case2dILS]
+  let (csv, _) = Test.showCases n rg header tcases
+  writeFile fp csv
+  putStrLn "OK!"
 
 f1 :: ObjFun
 f1 [x, y] = sin (x + y) + (x - y) ** 2 - 1.5 * x + 2.5 * y + 1.0
@@ -29,25 +34,21 @@ f2 [x, y] = -y47 * sinSqrtAbs (x / 2 + y47) - x * sinSqrtAbs (x - y47)
     y47 = y + 47
 f2 _      = error "wrong number of parameters"
 
-limits1a :: [Limit]
 limits1a = inclusive [(-1.5, 4.0), (-3.0, 4.0)]
-limits1b :: [Limit]
 limits1b = inclusive [(-1.0, 0.0), (-2.0, -1.0)]
-limits2c :: [Limit]
 limits2c = inclusive [(-512.0, 512.0), (-512.0, 512.0)]
-limits2d :: [Limit]
 limits2d = inclusive [(511.0, 512.0), (404, 405)]
 
-params1a :: (HC.Params, ILS.Params)
-params1a = (HC.Params
+case1aHC = Test.HCTestCase "1a,HC" HC.Params
               { HC.z = f1
               , HC.limits = limits1a
               , HC.noise = [0.1, 0.1]
               , HC.tweakProb = 1.0
               , HC.tweakN = 5
               , HC.select = minimize f1
-              , HC.stop = NoImprovements 10 1e-6 },
-            ILS.Params
+              , HC.stop = NoImprovements 10 1e-6 }
+
+case1aILS = Test.ILSTestCase "1a,ILS" ILS.Params
               { ILS.z              = f1
               , ILS.limits         = limits1a
               , ILS.perturbTries   = 5
@@ -57,18 +58,17 @@ params1a = (HC.Params
               , ILS.select         = minimize f1
               , ILS.tolerance      = 0.5
               , ILS.stop           = NoImprovements 10 1e-6 }
-            )
 
-params1b :: (HC.Params, ILS.Params)
-params1b = (HC.Params
+case1bHC = Test.HCTestCase "1b,HC" HC.Params
               { HC.z = f1
               , HC.limits = limits1b
               , HC.noise = [0.1, 0.1]
               , HC.tweakProb = 1.0
               , HC.tweakN = 5
               , HC.select = minimize f1
-              , HC.stop = NoImprovements 10 1e-6 },
-            ILS.Params
+              , HC.stop = NoImprovements 10 1e-6 }
+
+case1bILS = Test.ILSTestCase "1b,ILS" ILS.Params
               { ILS.z              = f1
               , ILS.limits         = limits1b
               , ILS.perturbTries   = 5
@@ -78,16 +78,17 @@ params1b = (HC.Params
               , ILS.select         = minimize f1
               , ILS.tolerance      = 0.5
               , ILS.stop           = NoImprovements 10 1e-6 }
-            )
-params2c = (HC.Params
+
+case2cHC = Test.HCTestCase "2c,HC" HC.Params
               { HC.z = f2
               , HC.limits = limits2c
               , HC.noise = [10.0, 10.0]
               , HC.tweakProb = 1.0
               , HC.tweakN = 10
               , HC.select = minimize f2
-              , HC.stop = NoImprovements 10 1e-6 },
-            ILS.Params
+              , HC.stop = NoImprovements 10 1e-6 }
+
+case2cILS = Test.ILSTestCase "2c,ILS" ILS.Params
               { ILS.z              = f2
               , ILS.limits         = limits2c
               , ILS.perturbTries   = 10
@@ -97,16 +98,17 @@ params2c = (HC.Params
               , ILS.select         = minimize f2
               , ILS.tolerance      = 0.5
               , ILS.stop           = NoImprovements 10 1e-6 }
-            )
-params2d = (HC.Params
+
+case2dHC = Test.HCTestCase "2d,HC" HC.Params
               { HC.z = f2
               , HC.limits = limits2d
               , HC.noise = [0.2, 0.2]
               , HC.tweakProb = 1.0
               , HC.tweakN = 5
               , HC.select = minimize f2
-              , HC.stop = NoImprovements 10 1e-6 },
-            ILS.Params
+              , HC.stop = NoImprovements 10 1e-6 }
+
+case2dILS = Test.ILSTestCase "2d,ILS" ILS.Params
               { ILS.z              = f2
               , ILS.limits         = limits2d
               , ILS.perturbTries   = 5
@@ -116,4 +118,3 @@ params2d = (HC.Params
               , ILS.select         = minimize f2
               , ILS.tolerance      = 0.5
               , ILS.stop           = NoImprovements 10 1e-6 }
-            )

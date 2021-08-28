@@ -1,4 +1,3 @@
--- module IterLocalSearch (Params(..), optimize) where
 module IterLocalSearch (Params(..), optimize) where
 
 import           Definition
