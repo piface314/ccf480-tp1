@@ -1,4 +1,4 @@
-module Test where (showCases, runCases)
+module Test (TestCase(..), showCases, runCases) where
 
 import           Data.List       (intercalate)
 import           Definition      (ObjFun, Solution, randFor, randMap)
