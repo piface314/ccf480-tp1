@@ -32,11 +32,11 @@ inclusive = map (\ (lo, hi) -> (lo, (<=?<=), hi))
 exclusive :: [(Double, Double)] -> [Limit]
 exclusive = map (\ (lo, hi) -> (lo, (<?<), hi))
 
-minimize :: ObjFun -> Solution -> Solution -> Solution
-minimize z s1 s2 = if z s1 < z s2 then s1 else s2
+minimize :: Double -> Double
+minimize = id
 
-maximize :: ObjFun -> Solution -> Solution -> Solution
-maximize z s1 s2 = if z s1 > z s2 then s1 else s2
+maximize :: Double -> Double
+maximize = negate
 
 inLimits :: [Limit] -> Solution -> Bool
 inLimits lim s = all (\ ((lo, (<?), hi), x) -> x <? (lo, hi)) (zip lim s)
@@ -49,7 +49,10 @@ randMap rg f (x:xs) = (x':xs', rg'')
     (xs', rg'') = randMap rg' f xs
 
 randFor :: StdGen -> (StdGen -> (a, StdGen)) -> Int -> ([a], StdGen)
-randFor rg f n = randMap rg (\ rg _ -> f rg) [1 .. n] 
+randFor rg f n = randMap rg (\ rg _ -> f rg) [1 .. n]
+
+best :: Ord b => (a -> b) -> [a] -> a
+best z xs = xs !! (snd . minimum) (zip (map z xs) [0..])
 
 shouldStop :: StopCheck -> Stats -> Bool
 shouldStop (ZChecks maxn) Stats{zChecks = n}        = n > maxn

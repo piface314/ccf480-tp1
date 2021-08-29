@@ -5,11 +5,11 @@ import           System.Random (Random (random, randomR), StdGen)
 
 data Params = Params
   { z         :: ObjFun
+  , opt       :: Double -> Double
   , limits    :: [Limit]
   , noise     :: [Double]
   , tweakProb :: Prob
   , tweakN    :: Int
-  , select    :: Selection
   , stop      :: StopCheck }
 
 optimize :: Params -> StdGen -> (Solution, StdGen)
@@ -24,8 +24,8 @@ optimize' p rg stats@(Stats zn zv) s =
   where
     n = tweakN p
     (candidates, rg') = randMap rg (\ rg _ -> tweak p rg s) [1 .. n]
-    s' = foldl (select p) s candidates
-    stats' = Stats (zn + 2 * n) (z p s' : zv)
+    s' = select p (s:candidates)
+    stats' = Stats (zn + n + 1) (z p s' : zv)
 
 initialize :: Params -> StdGen -> (Solution, StdGen)
 initialize p rg = randMap rg vi (limits p)
@@ -49,3 +49,6 @@ addNoise' rg i@(x, noise, (lo, (<?), hi)) =
     in if x' <? (lo, hi)
       then (x', rg')
       else addNoise' rg' i
+
+select :: Params -> [Solution] -> Solution
+select p = best (opt p . z p)

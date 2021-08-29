@@ -6,12 +6,12 @@ import           System.Random (Random (random, randomR), StdGen)
 
 data Params = Params
   { z              :: ObjFun
+  , opt            :: Double -> Double
   , limits         :: [Limit]
   , perturbTries   :: Int
   , noise          :: [Double]
   , localStep      :: [Double]
   , localPrecision :: [Double]
-  , select         :: Selection
   , tolerance      :: Prob
   , stop           :: StopCheck }
 
@@ -24,19 +24,19 @@ optimize p rg = optimize' p rg' (Stats 0 []) i' [i']
 optimize' :: Params -> StdGen -> Stats -> Solution -> [Solution] -> (Solution, StdGen)
 optimize' p rg stats@(Stats zn zv) s memo =
   if shouldStop (stop p) stats
-    then (best, rg)
+    then (sBest, rg)
     else case perturb p rg s memo of
-      (Nothing, rg') -> (best, rg')
+      (Nothing, rg') -> (sBest, rg')
       (Just s', rg') ->
         let s'' = search p s'
             memo' = s'':memo
-            best' = foldl1 (select p) memo'
-            stats' = Stats (zn + 2 * length memo) (z p best' : zv)
-            (r, rg'') = random rg' :: (Double, StdGen)
-            sNext = if r <= tolerance p then s'' else best'
+            sBest' = select p memo'
+            stats' = Stats (zn + length memo') (z p sBest' : zv)
+            (r, rg'') = random rg'
+            sNext = if r <= tolerance p then s'' else sBest'
         in  optimize' p rg'' stats' sNext memo'
   where
-    best = foldl1 (select p) memo
+    sBest = select p memo
 
 initialize :: Params -> StdGen -> (Solution, StdGen)
 initialize p rg = randMap rg vi (limits p)
@@ -48,8 +48,8 @@ search :: Params -> Solution -> Solution
 search p = PS.search localP (localStep p)
   where localP = PS.Params
           { PS.z = z p
+          , PS.opt = opt p
           , PS.limits = limits p
-          , PS.select = select p
           , PS.precision = localPrecision p }
 
 perturb :: Params -> StdGen -> Solution -> [Solution] -> (Maybe Solution, StdGen)
@@ -78,3 +78,6 @@ isDistant p s = all (isDistant' p s)
 
 isDistant' :: Params -> Solution -> Solution -> Bool
 isDistant' p s s' = all (\(d, x, x') -> abs (x - x') > d) (zip3 (localStep p) s s')
+
+select :: Params -> [Solution] -> Solution
+select p = best (opt p . z p)
