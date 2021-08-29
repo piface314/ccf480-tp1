@@ -1,7 +1,6 @@
 module IterLocalSearch (Params(..), optimize) where
 
 import           Definition
-import qualified PatternSearch as PS
 import           System.Random (Random (random, randomR), StdGen)
 
 data Params = Params
@@ -9,17 +8,16 @@ data Params = Params
   , opt            :: Double -> Double
   , limits         :: [Limit]
   , perturbTries   :: Int
-  , noise          :: [Double]
-  , localStep      :: [Double]
-  , localPrecision :: [Double]
+  , noise          :: [(Double, Double)]
+  , search         :: Solution -> (Solution, Int)
   , tolerance      :: Prob
   , stop           :: StopCheck }
 
 optimize :: Params -> StdGen -> (Solution, StdGen)
-optimize p rg = optimize' p rg' (Stats 0 []) i' [i']
+optimize p rg = optimize' p rg' (Stats zn [z p i']) i' [i']
   where
     (i, rg') = initialize p rg
-    i' = search p i
+    (i', zn) = search p i
 
 optimize' :: Params -> StdGen -> Stats -> Solution -> [Solution] -> (Solution, StdGen)
 optimize' p rg stats@(Stats zn zv) s memo =
@@ -28,10 +26,10 @@ optimize' p rg stats@(Stats zn zv) s memo =
     else case perturb p rg s memo of
       (Nothing, rg') -> (sBest, rg')
       (Just s', rg') ->
-        let s'' = search p s'
+        let (s'', zn') = search p s'
             memo' = s'':memo
             sBest' = select p memo'
-            stats' = Stats (zn + length memo') (z p sBest' : zv)
+            stats' = Stats (zn + zn' + length memo') (z p sBest' : zv)
             (r, rg'') = random rg'
             sNext = if r <= tolerance p then s'' else sBest'
         in  optimize' p rg'' stats' sNext memo'
@@ -44,14 +42,6 @@ initialize p rg = randMap rg vi (limits p)
     vi :: StdGen -> Limit -> (Double, StdGen)
     vi rg (lo, _, hi) = randomR (lo, hi) rg
 
-search :: Params -> Solution -> Solution
-search p = PS.search localP (localStep p)
-  where localP = PS.Params
-          { PS.z = z p
-          , PS.opt = opt p
-          , PS.limits = limits p
-          , PS.precision = localPrecision p }
-
 perturb :: Params -> StdGen -> Solution -> [Solution] -> (Maybe Solution, StdGen)
 perturb = perturb' 0
 
@@ -61,13 +51,12 @@ perturb' tries p rg s memo
   | isDistant p s' memo    = (Just s', rg')
   | otherwise              = perturb' (tries + 1) p rg' s memo
   where
-    noise' = zipWith (\ st n -> (st, st + n)) (localStep p) (noise p)
-    (s', rg') = randMap rg addNoise (zip3 s noise' (limits p))
+    (s', rg') = randMap rg addNoise (zip3 s (noise p) (limits p))
 
 addNoise :: StdGen -> (Double, (Double, Double), Limit) -> (Double, StdGen)
 addNoise rg i@(x, (minNoise, maxNoise), (lo, (<?), hi)) =
   let (noise, rg') = randomR (minNoise, maxNoise) rg
-      (r, rg'') = random rg' :: (Double, StdGen)
+      (r, rg'') = random rg' :: (Prob, StdGen)
       x' = if r < 0.5 then x - noise else x + noise
     in if x' <? (lo, hi)
       then (x', rg'')
@@ -77,7 +66,7 @@ isDistant :: Params -> Solution -> [Solution] -> Bool
 isDistant p s = all (isDistant' p s)
 
 isDistant' :: Params -> Solution -> Solution -> Bool
-isDistant' p s s' = all (\(d, x, x') -> abs (x - x') > d) (zip3 (localStep p) s s')
+isDistant' p s s' = all (\(d, x, x') -> abs (x - x') > d) (zip3 (map fst (noise p)) s s')
 
 select :: Params -> [Solution] -> Solution
 select p = best (opt p . z p)

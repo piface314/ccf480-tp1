@@ -1,9 +1,11 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import numpy as np
 from sys import argv
 import os
 
+mpl.rcParams['figure.dpi'] = 300
 
 def f1(x, y):
     return np.sin(x + y) + (x - y) ** 2 - 1.5 * x + 2.5 * y + 1.0
