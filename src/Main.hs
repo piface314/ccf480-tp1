@@ -17,9 +17,9 @@ main = do
                   []     -> ("out.csv", 30)
                   [n]    -> ("out.csv", read n)
                   fp:n:_ -> (fp, read n)
-  let header = ["case", "algorithm", "x", "y", "z"]
   let tcases = [case1aHC, case1aILS, case1bHC, case1bILS, case2cHC, case2cILS, case2dHC, case2dILS]
-  let (csv, _) = Test.showCases n rg header tcases
+  let (out, _) = Test.runCases n rg tcases
+  let csv = Test.showCases ["case", "algorithm", "x", "y", "z"] out
   writeFile fp csv
   putStrLn "OK!"
 
@@ -37,7 +37,7 @@ f2 _      = error "wrong number of parameters"
 limits1a = inclusive [(-1.5, 4.0), (-3.0, 4.0)]
 limits1b = inclusive [(-1.0, 0.0), (-2.0, -1.0)]
 limits2c = inclusive [(-512.0, 512.0), (-512.0, 512.0)]
-limits2d = inclusive [(511.0, 512.0), (404, 405)]
+limits2d = inclusive [(511.0, 512.0), (404.0, 405.0)]
 
 case1aHC = Test.HCTestCase "1a,HC" HC.Params
               { HC.z = f1

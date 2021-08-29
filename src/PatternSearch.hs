@@ -1,4 +1,3 @@
--- https://doi.org/10.1145/321062.321069 usar Hook-Jeeves/Pattern Search/Direct Search na busca local
 module PatternSearch (Params(..), search) where
 
 import           Definition

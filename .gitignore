@@ -1,3 +1,5 @@
 *.hi
 *.o
+*.csv
+figs/*
 ccf480-tp1

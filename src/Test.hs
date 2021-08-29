@@ -1,4 +1,4 @@
-module Test where
+module Test where (showCases, runCases)
 
 import           Data.List       (intercalate)
 import           Definition      (ObjFun, Solution, randFor, randMap)
@@ -10,11 +10,8 @@ import           System.Random   (StdGen, newStdGen)
 data TestCase = HCTestCase String HC.Params | ILSTestCase String ILS.Params
 type TestOut = (String, Solution, Double)
 
-showCases :: Int -> StdGen -> [String] -> [TestCase] -> (String, StdGen)
-showCases n rg header tcases = (unlines outs', rg')
-  where
-    (outs, rg') = runCases n rg tcases
-    outs' = intercalate "," header : map showTestOut outs
+showCases :: [String] -> [TestOut] -> String
+showCases header outs = unlines $ intercalate "," header : map showTestOut outs
 
 showTestOut :: TestOut -> String
 showTestOut (label, s, zv) = intercalate "," [label, intercalate "," (map show s), show zv]
