@@ -19,7 +19,8 @@ def f2(x, y):
 fns = {"1a": f1, "1b": f1, "2c": f2, "2d": f2}
 
 points = {"HC": {"c": "r", "marker": "o"},
-          "ILS": {"c": "b", "marker": "s"}}
+          "ILS(PS)": {"c": "b", "marker": "+"},
+          "ILS(AS)": {"c": "g", "marker": "x"}}
 
 limits = {"1a": [(-1.5, 4.0), (-3.0, 4.0), 0.025],
           "1b": [(-1.0, 0.0), (-2.0, -1.0), 0.025],
@@ -61,7 +62,7 @@ def contour(df, figsdir):
         plt.colorbar(cs)
         for alg in algs:
             cadf = cdf[cdf.algorithm == alg]
-            cadf.plot.scatter("x", "y", s=1, ax=ax, label=alg, **points[alg])
+            cadf.plot.scatter("x", "y", s=12, ax=ax, label=alg, **points[alg])
         plt.title(f"Soluções encontradas no Caso {case}")
         plt.legend()
         plt.xlim(*xlim)

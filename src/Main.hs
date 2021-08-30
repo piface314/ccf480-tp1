@@ -1,5 +1,6 @@
 module Main where
 
+import qualified AmoebaSearch       as AS
 import           Definition
 import qualified HillClimb          as HC
 import qualified IterLocalSearch    as ILS
@@ -17,7 +18,11 @@ main = do
                   []     -> ("out.csv", 30)
                   [n]    -> ("out.csv", read n)
                   fp:n:_ -> (fp, read n)
-  let tcases = [case1aHC, case1aILS, case1bHC, case1bILS, case2cHC, case2cILS, case2dHC, case2dILS]
+  let tcases = [ case1aHC, case1aILSPS, case1aILSAS
+               , case1bHC, case1bILSPS, case1bILSAS
+               , case2cHC, case2cILSPS, case2cILSAS
+               , case2dHC, case2dILSPS, case2dILSAS
+               ]
   let (out, _) = Test.runCases n rg tcases
   let csv = Test.showCases ["case", "algorithm", "x", "y", "z"] out
   writeFile fp csv
@@ -46,9 +51,10 @@ case1aHC = Test.HCTestCase "1a,HC" HC.Params
               , HC.noise     = [0.1, 0.1]
               , HC.tweakProb = 1.0
               , HC.tweakN    = 5
-              , HC.stop      = NoImprovements 10 1e-6 }
+              , HC.stop      = NoImprovements 10 1e-6
+              }
 
-case1aILS = Test.ILSTestCase "1a,ILS" ILS.Params
+case1aILSPS = Test.ILSTestCase "1a,ILS(PS)" ILS.Params
               { ILS.z              = f1
               , ILS.opt            = minimize
               , ILS.limits         = limits1a
@@ -61,7 +67,27 @@ case1aILS = Test.ILSTestCase "1a,ILS" ILS.Params
                                       , PS.opt = minimize
                                       , PS.limits = limits1a
                                       , PS.step = [1.0, 1.0]
-                                      , PS.precision = [1e-4, 1e-4] } }
+                                      , PS.precision = [1e-4, 1e-4]
+                                      }
+              }
+
+case1aILSAS = Test.ILSTestCase "1a,ILS(AS)" ILS.Params
+              { ILS.z              = f1
+              , ILS.opt            = minimize
+              , ILS.limits         = limits1a
+              , ILS.perturbTries   = 5
+              , ILS.noise          = [(1.0, 2.0), (1.0, 2.0)]
+              , ILS.tolerance      = 0.5
+              , ILS.stop           = NoImprovements 10 1e-6
+              , ILS.search         = AS.search AS.Params
+                                      { AS.z = f1
+                                      , AS.opt = minimize
+                                      , AS.limits = limits1a
+                                      , AS.coeff = AS.defaultCoeff
+                                      , AS.initStep = [1.0, 1.0]
+                                      , AS.precision = 1e-4
+                                      }
+              }
 
 case1bHC = Test.HCTestCase "1b,HC" HC.Params
               { HC.z         = f1
@@ -70,9 +96,10 @@ case1bHC = Test.HCTestCase "1b,HC" HC.Params
               , HC.noise     = [0.1, 0.1]
               , HC.tweakProb = 1.0
               , HC.tweakN    = 5
-              , HC.stop      = NoImprovements 10 1e-6 }
+              , HC.stop      = NoImprovements 10 1e-6
+              }
 
-case1bILS = Test.ILSTestCase "1b,ILS" ILS.Params
+case1bILSPS = Test.ILSTestCase "1b,ILS(PS)" ILS.Params
               { ILS.z              = f1
               , ILS.opt            = minimize
               , ILS.limits         = limits1b
@@ -85,7 +112,27 @@ case1bILS = Test.ILSTestCase "1b,ILS" ILS.Params
                                       , PS.opt = minimize
                                       , PS.limits = limits1b
                                       , PS.step = [0.1, 0.1]
-                                      , PS.precision = [1e-4, 1e-4] } }
+                                      , PS.precision = [1e-4, 1e-4]
+                                      }
+              }
+
+case1bILSAS = Test.ILSTestCase "1b,ILS(AS)" ILS.Params
+              { ILS.z              = f1
+              , ILS.opt            = minimize
+              , ILS.limits         = limits1b
+              , ILS.perturbTries   = 5
+              , ILS.noise          = [(0.1, 0.5), (0.1, 0.5)]
+              , ILS.tolerance      = 0.5
+              , ILS.stop           = NoImprovements 10 1e-6
+              , ILS.search         = AS.search AS.Params
+                                      { AS.z = f1
+                                      , AS.opt = minimize
+                                      , AS.limits = limits1b
+                                      , AS.coeff = AS.defaultCoeff
+                                      , AS.initStep = [0.1, 0.1]
+                                      , AS.precision = 1e-4
+                                      }
+              }
 
 case2cHC = Test.HCTestCase "2c,HC" HC.Params
               { HC.z         = f2
@@ -94,9 +141,10 @@ case2cHC = Test.HCTestCase "2c,HC" HC.Params
               , HC.noise     = [10.0, 10.0]
               , HC.tweakProb = 1.0
               , HC.tweakN    = 10
-              , HC.stop      = NoImprovements 10 1e-6 }
+              , HC.stop      = NoImprovements 10 1e-6
+              }
 
-case2cILS = Test.ILSTestCase "2c,ILS" ILS.Params
+case2cILSPS = Test.ILSTestCase "2c,ILS(PS)" ILS.Params
               { ILS.z              = f2
               , ILS.opt            = minimize
               , ILS.limits         = limits2c
@@ -109,7 +157,27 @@ case2cILS = Test.ILSTestCase "2c,ILS" ILS.Params
                                       , PS.opt = minimize
                                       , PS.limits = limits2c
                                       , PS.step = [10.0, 10.0]
-                                      , PS.precision = [1e-2, 1e-2] } }
+                                      , PS.precision = [1e-2, 1e-2]
+                                      }
+              }
+
+case2cILSAS = Test.ILSTestCase "2c,ILS(AS)" ILS.Params
+              { ILS.z              = f2
+              , ILS.opt            = minimize
+              , ILS.limits         = limits2c
+              , ILS.perturbTries   = 10
+              , ILS.noise          = [(10.0, 200.0), (10.0, 200.0)]
+              , ILS.tolerance      = 0.5
+              , ILS.stop           = NoImprovements 10 1e-6
+              , ILS.search         = AS.search AS.Params
+                                      { AS.z = f2
+                                      , AS.opt = minimize
+                                      , AS.limits = limits2c
+                                      , AS.coeff = AS.defaultCoeff
+                                      , AS.initStep = [0.1, 0.1]
+                                      , AS.precision = 1e-4
+                                      }
+              }
 
 case2dHC = Test.HCTestCase "2d,HC" HC.Params
               { HC.z         = f2
@@ -118,9 +186,10 @@ case2dHC = Test.HCTestCase "2d,HC" HC.Params
               , HC.noise     = [0.2, 0.2]
               , HC.tweakProb = 1.0
               , HC.tweakN    = 5
-              , HC.stop      = NoImprovements 10 1e-6 }
+              , HC.stop      = NoImprovements 10 1e-6
+              }
 
-case2dILS = Test.ILSTestCase "2d,ILS" ILS.Params
+case2dILSPS = Test.ILSTestCase "2d,ILS(PS)" ILS.Params
               { ILS.z              = f2
               , ILS.opt            = minimize
               , ILS.limits         = limits2d
@@ -133,4 +202,24 @@ case2dILS = Test.ILSTestCase "2d,ILS" ILS.Params
                                       , PS.opt = minimize
                                       , PS.limits = limits2d
                                       , PS.step = [0.1, 0.1]
-                                      , PS.precision = [1e-4, 1e-4] } }
+                                      , PS.precision = [1e-4, 1e-4]
+                                      }
+              }
+
+case2dILSAS = Test.ILSTestCase "2d,ILS(AS)" ILS.Params
+              { ILS.z              = f2
+              , ILS.opt            = minimize
+              , ILS.limits         = limits2d
+              , ILS.perturbTries   = 5
+              , ILS.noise          = [(0.1, 0.5), (0.1, 0.5)]
+              , ILS.tolerance      = 0.5
+              , ILS.stop           = NoImprovements 10 1e-6
+              , ILS.search         = AS.search AS.Params
+                                      { AS.z = f2
+                                      , AS.opt = minimize
+                                      , AS.limits = limits2d
+                                      , AS.coeff = AS.defaultCoeff
+                                      , AS.initStep = [0.1, 0.1]
+                                      , AS.precision = 1e-4
+                                      }
+              }

@@ -66,7 +66,7 @@ isDistant :: Params -> Solution -> [Solution] -> Bool
 isDistant p s = all (isDistant' p s)
 
 isDistant' :: Params -> Solution -> Solution -> Bool
-isDistant' p s s' = all (\(d, x, x') -> abs (x - x') > d) (zip3 (map fst (noise p)) s s')
+isDistant' p s s' = all (\(d, x, x') -> abs (x - x') > d) (zip3 (fst <$> noise p) s s')
 
 select :: Params -> [Solution] -> Solution
 select p = best (opt p . z p)

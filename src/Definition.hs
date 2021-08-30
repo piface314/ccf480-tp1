@@ -10,6 +10,14 @@ type Selection = Solution -> Solution -> Solution
 data StopCheck = ZChecks Int | Iterations Int | NoImprovements Int Double
 data Stats = Stats { zChecks :: Int, zBest :: [Double] } deriving (Eq, Read, Show)
 
+instance Num a => Num [a] where
+  xs + ys = zipWith (+) xs ys
+  xs - ys = zipWith (-) xs ys
+  xs * ys = zipWith (*) xs ys
+  abs xs = abs <$> xs
+  signum xs = signum <$> xs
+  negate xs = negate <$> xs
+  fromInteger i = repeat (fromIntegral i)
 infix 4 <=?<=
 (<=?<=) :: Double -> (Double, Double) -> Bool
 (<=?<=) x (lo, hi) = lo <= x && x <= hi
@@ -52,7 +60,13 @@ randFor :: StdGen -> (StdGen -> (a, StdGen)) -> Int -> ([a], StdGen)
 randFor rg f n = randMap rg (\ rg _ -> f rg) [1 .. n]
 
 best :: Ord b => (a -> b) -> [a] -> a
-best z xs = xs !! (snd . minimum) (zip (map z xs) [0..])
+best z xs = xs !! (snd . minimum) (zip (z <$> xs) [0..])
+
+minOn :: Ord b => (a -> b) -> a -> a -> a
+minOn key a b = if key a < key b then a else b
+
+maxOn :: Ord b => (a -> b) -> a -> a -> a
+maxOn key a b = if key a > key b then a else b
 
 shouldStop :: StopCheck -> Stats -> Bool
 shouldStop (ZChecks maxn) Stats{zChecks = n}        = n > maxn

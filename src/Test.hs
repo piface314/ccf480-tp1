@@ -11,10 +11,10 @@ data TestCase = HCTestCase String HC.Params | ILSTestCase String ILS.Params
 type TestOut = (String, Solution, Double)
 
 showCases :: [String] -> [TestOut] -> String
-showCases header outs = unlines $ intercalate "," header : map showTestOut outs
+showCases header outs = unlines $ intercalate "," header : (showTestOut <$> outs)
 
 showTestOut :: TestOut -> String
-showTestOut (label, s, zv) = intercalate "," [label, intercalate "," (map show s), show zv]
+showTestOut (label, s, zv) = intercalate "," [label, intercalate "," (show <$> s), show zv]
 
 runCases :: Int -> StdGen -> [TestCase] -> ([TestOut], StdGen)
 runCases n rg tcases = (concat outs, rg')
@@ -27,4 +27,4 @@ runCase n rg (ILSTestCase label p) = (testOut label (ILS.z p) ss, rg)
   where (ss, rg') = randFor rg (ILS.optimize p) n
 
 testOut :: String -> ObjFun -> [Solution] -> [TestOut]
-testOut label z ss = zip3 (repeat label) ss (map z ss)
+testOut label z ss = zip3 (repeat label) ss (z <$> ss)
