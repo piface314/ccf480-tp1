@@ -37,10 +37,7 @@ optimize' p rg stats@(Stats zn zv) s memo =
     sBest = select p memo
 
 initialize :: Params -> StdGen -> (Solution, StdGen)
-initialize p rg = randMap rg vi (limits p)
-  where
-    vi :: StdGen -> Limit -> (Double, StdGen)
-    vi rg (lo, _, hi) = randomR (lo, hi) rg
+initialize p rg = randMap rg (flip randomR) (limits p)
 
 perturb :: Params -> StdGen -> Solution -> [Solution] -> (Maybe Solution, StdGen)
 perturb = perturb' 0
@@ -54,11 +51,11 @@ perturb' tries p rg s memo
     (s', rg') = randMap rg addNoise (zip3 s (noise p) (limits p))
 
 addNoise :: StdGen -> (Double, (Double, Double), Limit) -> (Double, StdGen)
-addNoise rg i@(x, (minNoise, maxNoise), (lo, (<?), hi)) =
+addNoise rg i@(x, (minNoise, maxNoise), (lo, hi)) =
   let (noise, rg') = randomR (minNoise, maxNoise) rg
       (r, rg'') = random rg' :: (Prob, StdGen)
       x' = if r < 0.5 then x - noise else x + noise
-    in if x' <? (lo, hi)
+    in if x' <=?<= (lo, hi)
       then (x', rg'')
       else addNoise rg'' i
 
@@ -66,7 +63,7 @@ isDistant :: Params -> Solution -> [Solution] -> Bool
 isDistant p s = all (isDistant' p s)
 
 isDistant' :: Params -> Solution -> Solution -> Bool
-isDistant' p s s' = all (\(d, x, x') -> abs (x - x') > d) (zip3 (fst <$> noise p) s s')
+isDistant' p s s' = and (zipWith (>) (abs (s - s')) (fst <$> noise p))
 
 select :: Params -> [Solution] -> Solution
 select p = best (opt p . z p)

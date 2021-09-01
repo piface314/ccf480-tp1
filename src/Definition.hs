@@ -2,11 +2,10 @@ module Definition where
 
 import           System.Random (Random (random, randomR, randoms), StdGen)
 
-type Limit = (Double, Double -> (Double, Double) -> Bool, Double)
+type Limit = (Double, Double)
 type Prob = Double
 type Solution = [Double]
 type ObjFun = Solution -> Double
-type Selection = Solution -> Solution -> Solution
 data StopCheck = ZChecks Int | Iterations Int | NoImprovements Int Double
 data Stats = Stats { zChecks :: Int, zBest :: [Double] } deriving (Eq, Read, Show)
 
@@ -18,27 +17,22 @@ instance Num a => Num [a] where
   signum xs = signum <$> xs
   negate xs = negate <$> xs
   fromInteger i = repeat (fromIntegral i)
+
 infix 4 <=?<=
-(<=?<=) :: Double -> (Double, Double) -> Bool
-(<=?<=) x (lo, hi) = lo <= x && x <= hi
+(<=?<=) :: Double -> Limit -> Bool
+x <=?<= (lo, hi) = lo <= x && x <= hi
 
 infix 4 <?<=
-(<?<=) :: Double -> (Double, Double) -> Bool
-(<?<=) x (lo, hi) = lo < x && x <= hi
+(<?<=) :: Double -> Limit -> Bool
+x <?<= (lo, hi) = lo < x && x <= hi
 
 infix 4 <=?<
-(<=?<) :: Double -> (Double, Double) -> Bool
-(<=?<) x (lo, hi) = lo <= x && x < hi
+(<=?<) :: Double -> Limit -> Bool
+x <=?< (lo, hi) = lo <= x && x < hi
 
 infix 4 <?<
-(<?<) :: Double -> (Double, Double) -> Bool
-(<?<) x (lo, hi) = lo < x && x < hi
-
-inclusive :: [(Double, Double)] -> [Limit]
-inclusive = map (\ (lo, hi) -> (lo, (<=?<=), hi))
-
-exclusive :: [(Double, Double)] -> [Limit]
-exclusive = map (\ (lo, hi) -> (lo, (<?<), hi))
+(<?<) :: Double -> Limit -> Bool
+x <?< (lo, hi) = lo < x && x < hi
 
 minimize :: Double -> Double
 minimize = id
@@ -47,7 +41,7 @@ maximize :: Double -> Double
 maximize = negate
 
 inLimits :: [Limit] -> Solution -> Bool
-inLimits lim s = all (\ ((lo, (<?), hi), x) -> x <? (lo, hi)) (zip lim s)
+inLimits lim s = and (zipWith (<=?<=) s lim)
 
 randMap :: StdGen -> (StdGen -> a -> (b, StdGen)) -> [a] -> ([b], StdGen)
 randMap rg f []     = ([], rg)
@@ -56,8 +50,8 @@ randMap rg f (x:xs) = (x':xs', rg'')
     (x', rg') = f rg x
     (xs', rg'') = randMap rg' f xs
 
-randFor :: StdGen -> (StdGen -> (a, StdGen)) -> Int -> ([a], StdGen)
-randFor rg f n = randMap rg (\ rg _ -> f rg) [1 .. n]
+randFor :: StdGen -> Int -> (StdGen -> (a, StdGen)) -> ([a], StdGen)
+randFor rg n f = randMap rg (\ rg _ -> f rg) [1 .. n]
 
 best :: Ord b => (a -> b) -> [a] -> a
 best z xs = xs !! (snd . minimum) (zip (z <$> xs) [0..])

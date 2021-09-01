@@ -1,4 +1,4 @@
-module AmoebaSearch where
+module AmoebaSearch (Params(..), Coeff(..), search, defaultCoeff) where
 
 -- Nelder–Mead method / downhill simplex method / amoeba method / polytope method
 
@@ -10,7 +10,7 @@ data Params = Params
   , opt       :: Double -> Double
   , limits    :: [Limit]
   , precision :: Double
-  , initStep  :: [Double]
+  , step      :: [Double]
   , coeff     :: Coeff }
 
 data Coeff = Coeff
@@ -50,7 +50,6 @@ search' p zn xs
     xr = reflection p x0 x'
     xe = expansion p x0 xr
     xc = contraction p x0 x'
-    xs'' = shrink p xs'
     zx1 = z' p x1
     zxr = z' p xr
     zn' = zn + length xs + 3
@@ -58,9 +57,9 @@ search' p zn xs
 initialize :: Params -> Solution -> [Solution]
 initialize p x = adjustInit p poly
   where
-    dist = zipWith (\ (lo, _, hi) x -> (lo - x, hi - x)) (limits p) x
-    step = initStep p * (signum . uncurry (maxOn abs) <$> dist)
-    poly = x : zipWith move step [0..]
+    dist = zipWith (\ (lo, hi) x -> (lo - x, hi - x)) (limits p) x
+    step' = step p * (signum . uncurry (maxOn abs) <$> dist)
+    poly = x : zipWith move step' [0..]
     move :: Double -> Int -> Solution
     move s i = let (pre, x':xs) = splitAt i x in pre ++ x' + s : xs
 

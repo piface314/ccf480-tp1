@@ -39,27 +39,27 @@ f2 [x, y] = -y47 * sinSqrtAbs (x / 2 + y47) - x * sinSqrtAbs (x - y47)
     y47 = y + 47
 f2 _      = error "wrong number of parameters"
 
-limits1a = inclusive [(-1.5, 4.0), (-3.0, 4.0)]
-limits1b = inclusive [(-1.0, 0.0), (-2.0, -1.0)]
-limits2c = inclusive [(-512.0, 512.0), (-512.0, 512.0)]
-limits2d = inclusive [(511.0, 512.0), (404.0, 405.0)]
+limits1a = [(-1.5, 4.0), (-3.0, 4.0)]
+limits1b = [(-1.0, 0.0), (-2.0, -1.0)]
+limits2c = [(-512.0, 512.0), (-512.0, 512.0)]
+limits2d = [(511.0, 512.0), (404.0, 405.0)]
 
-case1aHC = Test.HCTestCase "1a,HC" HC.Params
+case1aHC = Test.TestCase "1a,HC" f1 (HC.optimize HC.Params
               { HC.z         = f1
               , HC.opt       = minimize
               , HC.limits    = limits1a
               , HC.noise     = [0.1, 0.1]
               , HC.tweakProb = 1.0
-              , HC.tweakN    = 5
+              , HC.tweakN    = 10
               , HC.stop      = NoImprovements 10 1e-6
-              }
+              })
 
-case1aILSPS = Test.ILSTestCase "1a,ILS(PS)" ILS.Params
+case1aILSPS = Test.TestCase "1a,ILS(PS)" f1 (ILS.optimize ILS.Params
               { ILS.z              = f1
               , ILS.opt            = minimize
               , ILS.limits         = limits1a
-              , ILS.perturbTries   = 5
-              , ILS.noise          = [(1.0, 2.0), (1.0, 2.0)]
+              , ILS.perturbTries   = 10
+              , ILS.noise          = [(1.5, 4.0), (1.5, 4.0)]
               , ILS.tolerance      = 0.5
               , ILS.stop           = NoImprovements 10 1e-6
               , ILS.search         = PS.search PS.Params
@@ -69,14 +69,14 @@ case1aILSPS = Test.ILSTestCase "1a,ILS(PS)" ILS.Params
                                       , PS.step = [1.0, 1.0]
                                       , PS.precision = [1e-4, 1e-4]
                                       }
-              }
+              })
 
-case1aILSAS = Test.ILSTestCase "1a,ILS(AS)" ILS.Params
+case1aILSAS = Test.TestCase "1a,ILS(AS)" f1 (ILS.optimize ILS.Params
               { ILS.z              = f1
               , ILS.opt            = minimize
               , ILS.limits         = limits1a
-              , ILS.perturbTries   = 5
-              , ILS.noise          = [(1.0, 2.0), (1.0, 2.0)]
+              , ILS.perturbTries   = 10
+              , ILS.noise          = [(1.5, 4.0), (1.5, 4.0)]
               , ILS.tolerance      = 0.5
               , ILS.stop           = NoImprovements 10 1e-6
               , ILS.search         = AS.search AS.Params
@@ -84,26 +84,26 @@ case1aILSAS = Test.ILSTestCase "1a,ILS(AS)" ILS.Params
                                       , AS.opt = minimize
                                       , AS.limits = limits1a
                                       , AS.coeff = AS.defaultCoeff
-                                      , AS.initStep = [1.0, 1.0]
+                                      , AS.step = [1.0, 1.0]
                                       , AS.precision = 1e-4
                                       }
-              }
+              })
 
-case1bHC = Test.HCTestCase "1b,HC" HC.Params
+case1bHC = Test.TestCase "1b,HC" f1 (HC.optimize HC.Params
               { HC.z         = f1
               , HC.opt       = minimize
               , HC.limits    = limits1b
               , HC.noise     = [0.1, 0.1]
               , HC.tweakProb = 1.0
-              , HC.tweakN    = 5
+              , HC.tweakN    = 10
               , HC.stop      = NoImprovements 10 1e-6
-              }
+              })
 
-case1bILSPS = Test.ILSTestCase "1b,ILS(PS)" ILS.Params
+case1bILSPS = Test.TestCase "1b,ILS(PS)" f1 (ILS.optimize ILS.Params
               { ILS.z              = f1
               , ILS.opt            = minimize
               , ILS.limits         = limits1b
-              , ILS.perturbTries   = 5
+              , ILS.perturbTries   = 10
               , ILS.noise          = [(0.1, 0.5), (0.1, 0.5)]
               , ILS.tolerance      = 0.5
               , ILS.stop           = NoImprovements 10 1e-6
@@ -114,13 +114,13 @@ case1bILSPS = Test.ILSTestCase "1b,ILS(PS)" ILS.Params
                                       , PS.step = [0.1, 0.1]
                                       , PS.precision = [1e-4, 1e-4]
                                       }
-              }
+              })
 
-case1bILSAS = Test.ILSTestCase "1b,ILS(AS)" ILS.Params
+case1bILSAS = Test.TestCase "1b,ILS(AS)" f1 (ILS.optimize ILS.Params
               { ILS.z              = f1
               , ILS.opt            = minimize
               , ILS.limits         = limits1b
-              , ILS.perturbTries   = 5
+              , ILS.perturbTries   = 10
               , ILS.noise          = [(0.1, 0.5), (0.1, 0.5)]
               , ILS.tolerance      = 0.5
               , ILS.stop           = NoImprovements 10 1e-6
@@ -129,12 +129,12 @@ case1bILSAS = Test.ILSTestCase "1b,ILS(AS)" ILS.Params
                                       , AS.opt = minimize
                                       , AS.limits = limits1b
                                       , AS.coeff = AS.defaultCoeff
-                                      , AS.initStep = [0.1, 0.1]
+                                      , AS.step = [0.1, 0.1]
                                       , AS.precision = 1e-4
                                       }
-              }
+              })
 
-case2cHC = Test.HCTestCase "2c,HC" HC.Params
+case2cHC = Test.TestCase "2c,HC" f2 (HC.optimize HC.Params
               { HC.z         = f2
               , HC.opt       = minimize
               , HC.limits    = limits2c
@@ -142,14 +142,14 @@ case2cHC = Test.HCTestCase "2c,HC" HC.Params
               , HC.tweakProb = 1.0
               , HC.tweakN    = 10
               , HC.stop      = NoImprovements 10 1e-6
-              }
+              })
 
-case2cILSPS = Test.ILSTestCase "2c,ILS(PS)" ILS.Params
+case2cILSPS = Test.TestCase "2c,ILS(PS)" f2 (ILS.optimize ILS.Params
               { ILS.z              = f2
               , ILS.opt            = minimize
               , ILS.limits         = limits2c
               , ILS.perturbTries   = 10
-              , ILS.noise          = [(10.0, 200.0), (10.0, 200.0)]
+              , ILS.noise          = [(20.0, 200.0), (20.0, 200.0)]
               , ILS.tolerance      = 0.5
               , ILS.stop           = NoImprovements 10 1e-6
               , ILS.search         = PS.search PS.Params
@@ -157,16 +157,16 @@ case2cILSPS = Test.ILSTestCase "2c,ILS(PS)" ILS.Params
                                       , PS.opt = minimize
                                       , PS.limits = limits2c
                                       , PS.step = [10.0, 10.0]
-                                      , PS.precision = [1e-2, 1e-2]
+                                      , PS.precision = [1e-4, 1e-4]
                                       }
-              }
+              })
 
-case2cILSAS = Test.ILSTestCase "2c,ILS(AS)" ILS.Params
+case2cILSAS = Test.TestCase "2c,ILS(AS)" f2 (ILS.optimize ILS.Params
               { ILS.z              = f2
               , ILS.opt            = minimize
               , ILS.limits         = limits2c
               , ILS.perturbTries   = 10
-              , ILS.noise          = [(10.0, 200.0), (10.0, 200.0)]
+              , ILS.noise          = [(20.0, 200.0), (20.0, 200.0)]
               , ILS.tolerance      = 0.5
               , ILS.stop           = NoImprovements 10 1e-6
               , ILS.search         = AS.search AS.Params
@@ -174,26 +174,26 @@ case2cILSAS = Test.ILSTestCase "2c,ILS(AS)" ILS.Params
                                       , AS.opt = minimize
                                       , AS.limits = limits2c
                                       , AS.coeff = AS.defaultCoeff
-                                      , AS.initStep = [0.1, 0.1]
+                                      , AS.step = [10.0, 10.0]
                                       , AS.precision = 1e-4
                                       }
-              }
+              })
 
-case2dHC = Test.HCTestCase "2d,HC" HC.Params
+case2dHC = Test.TestCase "2d,HC" f2 (HC.optimize HC.Params
               { HC.z         = f2
               , HC.opt       = minimize
               , HC.limits    = limits2d
-              , HC.noise     = [0.2, 0.2]
+              , HC.noise     = [0.1, 0.1]
               , HC.tweakProb = 1.0
-              , HC.tweakN    = 5
+              , HC.tweakN    = 10
               , HC.stop      = NoImprovements 10 1e-6
-              }
+              })
 
-case2dILSPS = Test.ILSTestCase "2d,ILS(PS)" ILS.Params
+case2dILSPS = Test.TestCase "2d,ILS(PS)" f2 (ILS.optimize ILS.Params
               { ILS.z              = f2
               , ILS.opt            = minimize
               , ILS.limits         = limits2d
-              , ILS.perturbTries   = 5
+              , ILS.perturbTries   = 10
               , ILS.noise          = [(0.1, 0.5), (0.1, 0.5)]
               , ILS.tolerance      = 0.5
               , ILS.stop           = NoImprovements 10 1e-6
@@ -204,13 +204,13 @@ case2dILSPS = Test.ILSTestCase "2d,ILS(PS)" ILS.Params
                                       , PS.step = [0.1, 0.1]
                                       , PS.precision = [1e-4, 1e-4]
                                       }
-              }
+              })
 
-case2dILSAS = Test.ILSTestCase "2d,ILS(AS)" ILS.Params
+case2dILSAS = Test.TestCase "2d,ILS(AS)" f2 (ILS.optimize ILS.Params
               { ILS.z              = f2
               , ILS.opt            = minimize
               , ILS.limits         = limits2d
-              , ILS.perturbTries   = 5
+              , ILS.perturbTries   = 10
               , ILS.noise          = [(0.1, 0.5), (0.1, 0.5)]
               , ILS.tolerance      = 0.5
               , ILS.stop           = NoImprovements 10 1e-6
@@ -219,7 +219,7 @@ case2dILSAS = Test.ILSTestCase "2d,ILS(AS)" ILS.Params
                                       , AS.opt = minimize
                                       , AS.limits = limits2d
                                       , AS.coeff = AS.defaultCoeff
-                                      , AS.initStep = [0.1, 0.1]
+                                      , AS.step = [0.1, 0.1]
                                       , AS.precision = 1e-4
                                       }
-              }
+              })

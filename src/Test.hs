@@ -7,7 +7,7 @@ import qualified IterLocalSearch as ILS
 import qualified PatternSearch   as PS
 import           System.Random   (StdGen, newStdGen)
 
-data TestCase = HCTestCase String HC.Params | ILSTestCase String ILS.Params
+data TestCase = TestCase String ObjFun (StdGen -> (Solution, StdGen))
 type TestOut = (String, Solution, Double)
 
 showCases :: [String] -> [TestOut] -> String
@@ -21,10 +21,8 @@ runCases n rg tcases = (concat outs, rg')
   where (outs, rg') = randMap rg (runCase n) tcases
 
 runCase :: Int -> StdGen -> TestCase -> ([TestOut], StdGen)
-runCase n rg (HCTestCase label p) = (testOut label (HC.z p) ss, rg)
-  where (ss, rg') = randFor rg (HC.optimize p) n
-runCase n rg (ILSTestCase label p) = (testOut label (ILS.z p) ss, rg)
-  where (ss, rg') = randFor rg (ILS.optimize p) n
+runCase n rg (TestCase label z optimize) = (testOut label z ss, rg)
+  where (ss, rg') = randFor rg n optimize
 
 testOut :: String -> ObjFun -> [Solution] -> [TestOut]
 testOut label z ss = zip3 (repeat label) ss (z <$> ss)

@@ -23,18 +23,15 @@ optimize' p rg stats@(Stats zn zv) s =
     else optimize' p rg' stats' s'
   where
     n = tweakN p
-    (candidates, rg') = randMap rg (\ rg _ -> tweak p rg s) [1 .. n]
+    (candidates, rg') = randFor rg n (tweak p s)
     s' = select p (s:candidates)
     stats' = Stats (zn + n + 1) (z p s' : zv)
 
 initialize :: Params -> StdGen -> (Solution, StdGen)
-initialize p rg = randMap rg vi (limits p)
-  where
-    vi :: StdGen -> Limit -> (Double, StdGen)
-    vi rg (lo, _, hi) = randomR (lo, hi) rg
+initialize p rg = randMap rg (flip randomR) (limits p)
 
-tweak :: Params -> StdGen -> Solution -> (Solution, StdGen)
-tweak p rg s = randMap rg (addNoise p) (zip3 s (noise p) (limits p))
+tweak :: Params -> Solution -> StdGen -> (Solution, StdGen)
+tweak p s rg = randMap rg (addNoise p) (zip3 s (noise p) (limits p))
 
 addNoise :: Params -> StdGen -> (Double, Double, Limit) -> (Double, StdGen)
 addNoise p rg i@(x, _, _) =
@@ -44,9 +41,9 @@ addNoise p rg i@(x, _, _) =
       else (x, rg')
 
 addNoise' :: StdGen -> (Double, Double, Limit) -> (Double, StdGen)
-addNoise' rg i@(x, noise, (lo, (<?), hi)) =
+addNoise' rg i@(x, noise, (lo, hi)) =
   let (x', rg') = randomR (x - noise, x + noise) rg
-    in if x' <? (lo, hi)
+    in if x' <=?<= (lo, hi)
       then (x', rg')
       else addNoise' rg' i
 
